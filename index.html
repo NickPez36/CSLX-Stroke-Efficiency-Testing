@@ -50,6 +50,15 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Styling for active toggle button */
+        .toggle-btn-active {
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+        }
+        .toggle-btn-inactive {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #4b5563; /* gray-600 */
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 antialiased">
@@ -62,42 +71,77 @@
         </header>
 
         <main>
-            <!-- 1. (NEW) Data Selection -->
+            <!-- 1. Data Selection -->
             <div class="bg-gray-50 p-6 rounded-lg shadow-inner mb-8">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Data Selection</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-800">Data Selection</h2>
+                    <!-- (NEW) Compare Button -->
+                    <button id="add-comparison-btn" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        + Add Comparison
+                    </button>
+                    <button id="remove-comparison-btn" class="hidden text-sm text-red-600 hover:text-red-800 font-medium">
+                        - Remove Comparison
+                    </button>
+                </div>
+                
                 <div id="loader-area" class="flex items-center space-x-2 text-gray-600 hidden">
                     <div class="spinner"></div>
                     <span id="loader-text">Loading...</span>
                 </div>
-                <!-- FIXED: 'class_l' typo -->
-                <div id="selection-ui" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                
+                <!-- File A Selection -->
+                <div id="selection-ui-a" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <!-- Athlete Dropdown -->
                     <div>
-                        <label for="athlete-select" class="block text-sm font-medium text-gray-700">1. Select Athlete</label>
-                        <select id="athlete-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                        <label for="athlete-select-a" class="block text-sm font-medium text-gray-700">1. Select Athlete (File A)</label>
+                        <select id="athlete-select-a" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
                             <option value="">Loading...</option>
                         </select>
                     </div>
                     <!-- Date Dropdown -->
                     <div>
-                        <label for="date-select" class="block text-sm font-medium text-gray-700">2. Select Date</label>
-                        <select id="date-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                        <label for="date-select-a" class="block text-sm font-medium text-gray-700">2. Select Date (File A)</label>
+                        <select id="date-select-a" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
                             <option value="">Select athlete first</option>
                         </select>
                     </div>
                     <!-- File Dropdown -->
                     <div>
-                        <label for="file-select" class="block text-sm font-medium text-gray-700">3. Select Trial</label>
-                        <select id="file-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                        <label for="file-select-a" class="block text-sm font-medium text-gray-700">3. Select Trial (File A)</label>
+                        <select id="file-select-a" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
                             <option value="">Select date first</option>
                         </select>
                     </div>
                     <!-- Load Button -->
-                    <div>
-                        <label for="load-data-btn" class="block text-sm font-medium text-transparent">4. Load</label>
+                    <div class="self-end">
                         <button id="load-data-btn" class="mt-1 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition disabled:bg-gray-300" disabled>
                             Load Data
                         </button>
+                    </div>
+                </div>
+
+                <!-- (NEW) File B Selection (hidden by default) -->
+                <div id="selection-ui-b" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-300">
+                    <!-- Athlete Dropdown -->
+                    <div>
+                        <label for="athlete-select-b" class="block text-sm font-medium text-gray-700">1. Select Athlete (File B)</label>
+                        <select id="athlete-select-b" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <!-- Date Dropdown -->
+                    <div>
+                        <label for="date-select-b" class="block text-sm font-medium text-gray-700">2. Select Date (File B)</label>
+                        <select id="date-select-b" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                            <option value="">Select athlete first</option>
+                        </select>
+                    </div>
+                    <!-- File Dropdown -->
+                    <div>
+                        <label for="file-select-b" class="block text-sm font-medium text-gray-700">3. Select Trial (File B)</label>
+                        <select id="file-select-b" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                            <option value="">Select date first</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -109,25 +153,23 @@
 
             <!-- 3. File Info Display -->
             <div id="file-info-container" class="hidden mt-8">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">File Information</h2>
-                <div id="file-info" class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <!-- Content will be injected by JS -->
-                </div>
+                <!-- Content will be injected by JS -->
             </div>
 
             <!-- 4. Key Metrics -->
             <div id="metrics-container" class="hidden mt-8">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Key Metrics (100m Total)</h2>
-                <!-- (UPDATED) grid-cols for 7 items -->
-                <div id="metrics-info" class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Content will be injected by JS -->
-                </div>
+                <!-- Content will be injected by JS -->
             </div>
 
             <!-- 5. Velocity Chart -->
             <div id="chart-container" class="hidden mt-8">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
                     <h2 class="text-2xl font-semibold text-gray-800">Performance Chart</h2>
+                    <!-- (NEW) Chart Toggles -->
+                    <div id="chart-toggles" class="hidden mt-2 sm:mt-0 space-x-2">
+                        <button id="chart-toggle-velocity" class="toggle-btn-active px-4 py-2 text-sm font-medium rounded-lg">Velocity</button>
+                        <button id="chart-toggle-acceleration" class="toggle-btn-inactive px-4 py-2 text-sm font-medium rounded-lg">Acceleration</button>
+                    </div>
                     <button id="reset-zoom-btn" class="mt-2 sm:mt-0 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
                         Reset Zoom
                     </button>
@@ -154,7 +196,14 @@
         let velocityChartInstance = null;
         let splitChartInstances = new Map();
 
-        // (NEW) GitHub API Constants
+        // (NEW) Global state for analysis data
+        let analysisData = {
+            a: null, // To store file A's analysis
+            b: null  // To store file B's analysis
+        };
+        let activeChartMetric = 'velocity'; // 'velocity' or 'acceleration'
+
+        // GitHub API Constants
         const GH_USER = 'NickPez36';
         const GH_REPO = 'CSLX-Stroke-Efficiency-Testing';
         const API_BASE_URL = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/`;
@@ -164,22 +213,66 @@
             // Get all DOM elements
             const messageArea = document.getElementById('message-area');
             const fileInfoContainer = document.getElementById('file-info-container');
-            const fileInfo = document.getElementById('file-info');
             const metricsContainer = document.getElementById('metrics-container');
-            const metricsInfo = document.getElementById('metrics-info');
             const chartContainer = document.getElementById('chart-container');
             const resetZoomBtn = document.getElementById('reset-zoom-btn');
             const splitAnalysisContainer = document.getElementById('split-analysis-container');
-
-            // (NEW) Selection UI Elements
             const loaderArea = document.getElementById('loader-area');
             const loaderText = document.getElementById('loader-text');
-            const athleteSelect = document.getElementById('athlete-select');
-            const dateSelect = document.getElementById('date-select');
-            const fileSelect = document.getElementById('file-select');
             const loadDataBtn = document.getElementById('load-data-btn');
 
-            // --- (NEW) GitHub API Functions ---
+            // (NEW) Comparison UI Elements
+            const addComparisonBtn = document.getElementById('add-comparison-btn');
+            const removeComparisonBtn = document.getElementById('remove-comparison-btn');
+            const selectionUiB = document.getElementById('selection-ui-b');
+            const chartToggles = document.getElementById('chart-toggles');
+            const chartToggleVelocity = document.getElementById('chart-toggle-velocity');
+            const chartToggleAcceleration = document.getElementById('chart-toggle-acceleration');
+
+            // (NEW) Dropdown elements by file suffix ('a' or 'b')
+            const getSelectElements = (suffix) => ({
+                athlete: document.getElementById(`athlete-select-${suffix}`),
+                date: document.getElementById(`date-select-${suffix}`),
+                file: document.getElementById(`file-select-${suffix}`)
+            });
+
+            // --- UI Event Listeners ---
+
+            addComparisonBtn.addEventListener('click', () => {
+                selectionUiB.classList.remove('hidden');
+                addComparisonBtn.classList.add('hidden');
+                removeComparisonBtn.classList.remove('hidden');
+                loadDataBtn.textContent = "Load Comparison";
+                loadAthletes('b'); // Load athletes for the new dropdowns
+            });
+
+            removeComparisonBtn.addEventListener('click', () => {
+                selectionUiB.classList.add('hidden');
+                addComparisonBtn.classList.remove('hidden');
+                removeComparisonBtn.classList.add('hidden');
+                loadDataBtn.textContent = "Load Data";
+                analysisData.b = null; // Clear file B data
+                // If File A exists, re-render in single mode
+                if (analysisData.a) {
+                    displayUI();
+                }
+            });
+
+            chartToggleVelocity.addEventListener('click', () => {
+                activeChartMetric = 'velocity';
+                chartToggleVelocity.classList.replace('toggle-btn-inactive', 'toggle-btn-active');
+                chartToggleAcceleration.classList.replace('toggle-btn-active', 'toggle-btn-inactive');
+                drawMetricsChart(); // Redraw chart with new metric
+            });
+
+            chartToggleAcceleration.addEventListener('click', () => {
+                activeChartMetric = 'acceleration';
+                chartToggleAcceleration.classList.replace('toggle-btn-inactive', 'toggle-btn-active');
+                chartToggleVelocity.classList.replace('toggle-btn-active', 'toggle-btn-inactive');
+                drawMetricsChart(); // Redraw chart with new metric
+            });
+
+            // --- GitHub API Functions ---
 
             function showLoader(text) {
                 loaderText.textContent = text;
@@ -190,81 +283,68 @@
                 loaderArea.classList.add('hidden');
             }
 
-            // (UPDATED) More robust error handling
             async function handleApiError(response, error) {
                 let errorMsg = 'Failed to load data from GitHub. Please check console.';
                 if (error) {
-                    // General network error (e.g., CORS, DNS)
                     console.error('GitHub API Error:', error);
                     errorMsg += ` ${error.message}.`;
                 } else if (response) {
-                    // API error (404, 500, etc.)
                     console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
                     errorMsg += ` Status: ${response.status} ${response.statusText}.`;
-                    if (response.status === 404) {
-                        errorMsg += ' The requested file or folder was not found.';
-                    } else if (response.status === 403) {
-                        errorMsg += ' API rate limit exceeded. Please wait a moment and try again.';
-                    }
+                    if (response.status === 404) errorMsg += ' The requested file or folder was not found.';
+                    else if (response.status === 403) errorMsg += ' API rate limit exceeded. Please wait a moment and try again.';
                 }
-                
                 showMessage('error', errorMsg);
                 hideLoader();
             }
 
-            // 1. Load Athletes
-            async function loadAthletes() {
+            // (UPDATED) To handle 'a' and 'b' dropdowns
+            async function loadAthletes(suffix = 'a') {
                 showLoader('Loading athletes...');
+                const selects = getSelectElements(suffix);
                 try {
                     const response = await fetch(API_BASE_URL + DATA_PATH);
-                    if (!response.ok) {
-                        await handleApiError(response); // Pass the whole response
-                        return; // Stop execution
-                    }
+                    if (!response.ok) { await handleApiError(response); return; }
                     const data = await response.json();
                     
                     const athleteFolders = data.filter(item => item.type === 'dir');
-                    athleteSelect.innerHTML = '<option value="">Select athlete</option>';
+                    selects.athlete.innerHTML = '<option value="">Select athlete</option>';
                     athleteFolders.forEach(folder => {
                         const option = new Option(folder.name, folder.name);
-                        athleteSelect.add(option);
+                        selects.athlete.add(option);
                     });
-                    athleteSelect.disabled = false;
+                    selects.athlete.disabled = false;
                 } catch (error) {
-                    // This catches network errors before a response is received
                     await handleApiError(null, error);
                 } finally {
                     hideLoader();
                 }
             }
 
-            // 2. Load Dates
-            async function loadDates(athleteName) {
+            // (UPDATED)
+            async function loadDates(athleteName, suffix = 'a') {
+                const selects = getSelectElements(suffix);
                 if (!athleteName) return;
                 showLoader(`Loading dates for ${athleteName}...`);
                 
-                // Reset subsequent dropdowns
-                dateSelect.innerHTML = '<option value="">Select date</option>';
-                dateSelect.disabled = true;
-                fileSelect.innerHTML = '<option value="">Select date first</option>';
-                fileSelect.disabled = true;
-                loadDataBtn.disabled = true;
+                selects.date.innerHTML = '<option value="">Select date</option>';
+                selects.date.disabled = true;
+                selects.file.innerHTML = '<option value="">Select date first</option>';
+                selects.file.disabled = true;
+                if (suffix === 'a') loadDataBtn.disabled = true;
 
                 try {
                     const path = `${DATA_PATH}/${encodeURIComponent(athleteName)}`;
                     const response = await fetch(API_BASE_URL + path);
-                    if (!response.ok) {
-                        await handleApiError(response);
-                        return;
-                    }
+                    if (!response.ok) { await handleApiError(response); return; }
                     const data = await response.json();
 
                     const dateFolders = data.filter(item => item.type === 'dir' && /^\d{8}$/.test(item.name));
                     dateFolders.forEach(folder => {
                         const option = new Option(folder.name, folder.name);
-                        dateSelect.add(option);
+                        selects.date.add(option);
                     });
-                    dateSelect.disabled = false;
+                    selects.date.disabled = false;
                 } catch (error) {
                     await handleApiError(null, error);
                 } finally {
@@ -272,134 +352,151 @@
                 }
             }
 
-            // 3. Load Files
-            async function loadFiles(athleteName, dateFolder) {
+            // (UPDATED)
+            async function loadFiles(athleteName, dateFolder, suffix = 'a') {
+                const selects = getSelectElements(suffix);
                 if (!dateFolder) return;
                 showLoader(`Loading files for ${dateFolder}...`);
 
-                // Reset subsequent dropdowns
-                fileSelect.innerHTML = '<option value="">Select trial</option>';
-                fileSelect.disabled = true;
-                loadDataBtn.disabled = true;
+                selects.file.innerHTML = '<option value="">Select trial</option>';
+                selects.file.disabled = true;
+                if (suffix === 'a') loadDataBtn.disabled = true;
 
                 try {
                     const path = `${DATA_PATH}/${encodeURIComponent(athleteName)}/${encodeURIComponent(dateFolder)}`;
                     const response = await fetch(API_BASE_URL + path);
-                    if (!response.ok) {
-                        await handleApiError(response);
-                        return;
-                    }
+                    if (!response.ok) { await handleApiError(response); return; }
                     const data = await response.json();
 
                     const files = data.filter(item => item.type === 'file' && item.name.endsWith('.csv'));
                     files.forEach(file => {
                         const option = new Option(file.name, file.name);
-                        option.dataset.url = file.download_url; // Store download URL
-                        fileSelect.add(option);
+                        option.dataset.url = file.download_url;
+                        selects.file.add(option);
                     });
-                    fileSelect.disabled = false;
+                    selects.file.disabled = false;
                 } catch (error) {
                     await handleApiError(null, error);
                 } finally {
                     hideLoader();
                 }
             }
-
-            // 4. Fetch selected file content
-            async function fetchSelectedFileContent() {
-                const selectedOption = fileSelect.selectedOptions[0];
-                if (!selectedOption || !selectedOption.dataset.url) return;
+            
+            // (NEW) Helper to fetch and parse a single file
+            async function loadAndAnalyzeFile(suffix) {
+                const selects = getSelectElements(suffix);
+                const selectedOption = selects.file.selectedOptions[0];
+                if (!selectedOption || !selectedOption.dataset.url) {
+                    return null; // No file selected
+                }
 
                 const fileName = selectedOption.value;
                 const downloadUrl = selectedOption.dataset.url;
-
-                showLoader(`Loading file: ${fileName}...`);
-                loadDataBtn.disabled = true;
+                
+                showLoader(`Loading ${fileName}...`);
 
                 try {
                     const response = await fetch(downloadUrl);
-                    if (!response.ok) {
-                        await handleApiError(response);
-                        return;
-                    }
+                    if (!response.ok) { await handleApiError(response); return null; }
                     const csvString = await response.text();
+                    
+                    // Run analysis, but don't display yet
+                    const fileInfo = parseFileInfo(fileName, suffix);
+                    const csvData = parseCSV(csvString);
+                    const chartData = prepareChartData(csvData.headers, csvData.data);
+                    const metricsResult = calculateAllMetrics(chartData.velocityData, chartData.timeData, fileInfo.trial);
 
-                    // (NEW) Run the analysis using the fetched content
-                    runAnalysis(csvString, fileName);
-
+                    return { fileInfo, chartData, ...metricsResult }; // Return all data
                 } catch (error) {
-                    await handleApiError(null, error);
-                } finally {
-                    hideLoader();
-                    loadDataBtn.disabled = false;
+                    showMessage('error', `Failed to analyze ${fileName}: ${error.message}`);
+                    console.error(error);
+                    return null;
                 }
             }
 
-            // --- (NEW) Event Listeners for Dropdowns ---
-            athleteSelect.addEventListener('change', (e) => loadDates(e.target.value));
-            dateSelect.addEventListener('change', (e) => loadFiles(athleteSelect.value, e.target.value));
-            fileSelect.addEventListener('change', () => {
-                loadDataBtn.disabled = !fileSelect.value;
-            });
-            loadDataBtn.addEventListener('click', fetchSelectedFileContent);
-
-
-            // --- (REFACTORED) Main Analysis Function ---
-            function runAnalysis(csvString, fileName) {
-                // 1. Reset UI
-                showMessage('info', `Processing file: ${fileName}...`);
-                fileInfoContainer.classList.add('hidden');
-                metricsContainer.classList.add('hidden');
-                chartContainer.classList.add('hidden');
-                splitAnalysisContainer.classList.add('hidden');
-
-                let csvData, chartData, metricsResult, fileInfoData;
+            // (NEW) Main Load Button Handler
+            async function handleLoadData() {
+                loadDataBtn.disabled = true;
+                showMessage('info', 'Loading data...');
                 
-                try {
-                    // 2. Parse File Info
-                    fileInfoData = parseFileInfo(fileName);
-                    displayFileInfo(fileInfoData);
+                // Always load File A
+                analysisData.a = await loadAndAnalyzeFile('a');
+                
+                // Load File B only if it's visible and selected
+                analysisData.b = null;
+                if (!selectionUiB.classList.contains('hidden')) {
+                    analysisData.b = await loadAndAnalyzeFile('b');
+                }
+                
+                if (analysisData.a) { // At least File A must load successfully
+                    showMessage('success', 'Data loaded. Displaying results...');
+                    displayUI(); // Master display function
+                } else {
+                    showMessage('error', 'Failed to load File A. Please check selection and try again.');
+                }
 
-                    // 3. Parse CSV content
-                    csvData = parseCSV(csvString);
-                    if (csvData.data.length === 0) {
-                        throw new Error("No data rows found. Check if headers are on row 29.");
-                    }
+                hideLoader();
+                loadDataBtn.disabled = false;
+            }
 
-                    // 4. Prepare data for charts
-                    chartData = prepareChartData(csvData.headers, csvData.data);
-                    if (chartData.labels.length === 0) {
-                        throw new Error("No valid chart data could be prepared.");
-                    }
+            // --- Dropdown Event Listeners (Updated) ---
+            getSelectElements('a').athlete.addEventListener('change', (e) => loadDates(e.target.value, 'a'));
+            getSelectElements('a').date.addEventListener('change', (e) => loadFiles(getSelectElements('a').athlete.value, e.target.value, 'a'));
+            getSelectElements('a').file.addEventListener('change', () => {
+                loadDataBtn.disabled = !getSelectElements('a').file.value;
+            });
+            
+            getSelectElements('b').athlete.addEventListener('change', (e) => loadDates(e.target.value, 'b'));
+            getSelectElements('b').date.addEventListener('change', (e) => loadFiles(getSelectElements('b').athlete.value, e.target.value, 'b'));
+            
+            loadDataBtn.addEventListener('click', handleLoadData);
 
-                    // 5. Calculate all metrics (total and splits)
-                    metricsResult = calculateAllMetrics(chartData.velocityData, chartData.timeData, fileInfoData.trial);
-                    
-                    // Display total metrics
-                    displayMetrics(metricsResult.metrics, metricsResult.smoothingWindow);
-                    metricsContainer.classList.remove('hidden');
 
-                    // Display split metrics (accordion)
-                    displaySplitMetrics(metricsResult.splitMetrics);
-                    splitAnalysisContainer.classList.remove('hidden');
+            // --- (NEW) Master Display Function ---
+            function displayUI() {
+                // Clear all dynamic content
+                fileInfoContainer.innerHTML = '';
+                metricsContainer.innerHTML = '';
+                
+                // (FIXED) Only clear the accordion content, not the container
+                const accordion = splitAnalysisContainer.querySelector('#split-accordion');
+                if (accordion) {
+                    accordion.innerHTML = '';
+                }
 
-                    // 6. Draw Main Chart
-                    drawMetricsChart(chartData, metricsResult.smoothedVelocities);
-                    chartContainer.classList.remove('hidden');
-
-                    // 7. Success
-                    showMessage('success', 'File processed successfully. Results below.');
-
-                } catch (error) {
-                    showMessage('error', `An error occurred: ${error.message}`);
-                    console.error(error);
-                    // Hide all containers on failure
+                if (analysisData.b) {
+                    // --- COMPARISON MODE ---
+                    chartToggles.classList.remove('hidden');
+                    resetZoomBtn.classList.remove('hidden');
+                    displayComparisonFileInfo();
+                    displayComparisonMetrics();
+                    displayComparisonSplits();
+                } else if (analysisData.a) {
+                    // --- SINGLE FILE MODE ---
+                    chartToggles.classList.add('hidden');
+                    resetZoomBtn.classList.remove('hidden');
+                    displaySingleFileInfo();
+                    displaySingleMetrics();
+                    displaySingleSplits();
+                } else {
+                    // --- NO DATA ---
                     fileInfoContainer.classList.add('hidden');
                     metricsContainer.classList.add('hidden');
                     chartContainer.classList.add('hidden');
                     splitAnalysisContainer.classList.add('hidden');
+                    return;
                 }
+
+                // Show containers (but not chart, chart is drawn after)
+                fileInfoContainer.classList.remove('hidden');
+                metricsContainer.classList.remove('hidden');
+                splitAnalysisContainer.classList.remove('hidden');
+                
+                // Draw main chart
+                drawMetricsChart();
+                chartContainer.classList.remove('hidden');
             }
+            
 
             // --- Zoom Reset Handler ---
             resetZoomBtn.addEventListener('click', () => {
@@ -420,89 +517,71 @@
                         content.classList.toggle('hidden');
                         icon.classList.toggle('rotate-180');
                         
-                        // Render chart on first open
-                        const canvasId = content.querySelector('canvas')?.id;
-                        if (canvasId && !content.classList.contains('hidden') && !splitChartInstances.has(canvasId)) {
-                            const chartData = JSON.parse(target.dataset.chartData);
-                            drawSplitChart(canvasId, chartData.labels, chartData.data, chartData.unit);
-                        }
+                        // Render charts on first open
+                        content.querySelectorAll('canvas').forEach(canvas => {
+                            const canvasId = canvas.id;
+                            if (canvasId && !splitChartInstances.has(canvasId)) {
+                                const chartData = JSON.parse(canvas.dataset.chartData);
+                                // (UPDATED) Pass array of datasets
+                                drawSplitChart(canvasId, chartData.labels, chartData.datasets, chartData.unit);
+                            }
+                        });
                     }
                 }
             });
 
             // --- Start application by loading athletes ---
-            loadAthletes();
+            loadAthletes('a');
 
 
             // --- Parsing Functions ---
 
-            function parseFileInfo(filename) {
-                // Example: "20251028_120817_Dupras_Titouan_60SR.csv"
+            function parseFileInfo(filename, suffix = 'a') {
                 const regex = /^(\d{8})_(\d{6})_([^_]+)_([^_]+)_(\w+)$/;
                 const match = filename.replace('.csv', '').match(regex);
                 
+                const selects = getSelectElements(suffix);
+
                 if (!match) {
-                    // Fallback for filenames that might not have all parts but are still valid
-                    console.warn(`Filename ${filename} does not match expected format. Parsing athlete from folder structure.`);
-                    
-                    const athlete = athleteSelect.value;
-                    const date = dateSelect.value;
+                    console.warn(`Filename ${filename} does not match format. Parsing from folder.`);
+                    const athlete = selects.athlete.value;
+                    const date = selects.date.value;
                     const trial = filename.replace('.csv', '');
                     
-                    // Try to get info from dropdowns as a fallback
                     if(athlete && date) {
                         const dateStr = `${date.substring(0, 4)}-${date.substring(4, 6)}-${date.substring(6, 8)}`;
-                        // Split athlete name like "Titouan Dupras"
                         const nameParts = athlete.split(' ');
                         const firstName = nameParts[0] || '';
-                        const lastName = nameParts.slice(1).join(' ') || ''; // Handle multi-part last names
+                        const lastName = nameParts.slice(1).join(' ') || '';
 
-                        return {
-                            date: dateStr,
-                            time: "N/A",
-                            lastName: lastName,
-                            firstName: firstName,
-                            trial: trial
-                        }
+                        return { date: dateStr, time: "N/A", lastName, firstName, trial };
                     }
-                    throw new Error("Filename does not match expected format and athlete/date info is missing.");
+                    throw new Error("Filename format error and athlete/date info missing.");
                 }
                 
                 const [_, date, time, lastName, firstName, trial] = match;
-                
                 const formattedDate = `${date.substring(0, 4)}-${date.substring(4, 6)}-${date.substring(6, 8)}`;
                 const formattedTime = `${time.substring(0, 2)}:${time.substring(2, 4)}:${time.substring(4, 6)}`;
 
-                return {
-                    date: formattedDate,
-                    time: formattedTime,
-                    lastName,
-                    firstName,
-                    trial
-                };
+                return { date: formattedDate, time: formattedTime, lastName, firstName, trial };
             }
 
             function parseCSV(csvString, headerRow = 29) {
-                const rows = csvString.split(/\r?\n/); // Split by new line
-                
-                if (rows.length < headerRow + 1) {
-                    throw new Error(`File has fewer than ${headerRow + 1} rows. Cannot find headers.`);
-                }
+                const rows = csvString.split(/\r?\n/);
+                if (rows.length < headerRow + 1) throw new Error(`File < ${headerRow + 1} rows.`);
                 const headers = rows[headerRow - 1].split(',').map(h => h.trim());
                 
                 const data = [];
                 for (let i = headerRow; i < rows.length; i++) {
                     const row = rows[i].split(',').map(d => d.trim());
-                    if (row.length === headers.length && row[0] !== '') {
-                        data.push(row);
-                    }
+                    // (FIXED) Check if row has AT LEAST as many columns as header, not exactly equal
+                    if (row.length >= headers.length && row[0] !== '') data.push(row);
                 }
-                
+                if (data.length === 0) throw new Error("No data rows found. Check if headers are on row 29.");
                 return { headers, data };
             }
 
             // --- Helper Functions ---
-
             function simpleMovingAverage(data, windowSize) {
                 const smoothed = new Array(data.length).fill(null);
                 if (windowSize <= 0) return data;
@@ -532,219 +611,135 @@
             // --- Charting Functions ---
 
             function prepareChartData(headers, data) {
-                const distanceInterval = 0.02; // 0.02m per row
+                const distanceInterval = 0.02;
                 const secondsIndex = headers.findIndex(h => h.toLowerCase() === 'seconds');
-                if (secondsIndex === -1) {
-                    throw new Error("'Seconds' column not found in CSV headers.");
-                }
+                if (secondsIndex === -1) throw new Error("'Seconds' column not found.");
 
-                const chartLabels = [];
-                const velocities = [];
-                const rawAccelerations = [];
-                const times = [];
+                const chartLabels = [], velocities = [], rawAccelerations = [], times = [];
 
                 data.forEach((row, index) => {
-                    const timeString = row[secondsIndex];
-                    const time = parseFloat(timeString);
-
+                    const time = parseFloat(row[secondsIndex]);
                     if (!isNaN(time) && time > 0) {
                         const distance = (index + 1) * distanceInterval;
                         const velocity = distanceInterval / time;
-
                         chartLabels.push(distance.toFixed(2));
                         velocities.push(velocity);
                         times.push(time);
-
                         if (index > 0 && velocities[index - 1] !== null) {
-                            const prevVelocity = velocities[index - 1];
-                            const acceleration = (velocity - prevVelocity) / time;
-                            rawAccelerations.push(acceleration);
+                            rawAccelerations.push((velocity - velocities[index - 1]) / time);
                         } else {
                             rawAccelerations.push(0);
                         }
                     } else {
-                        chartLabels.push(null);
-                        velocities.push(null);
-                        times.push(null);
-                        rawAccelerations.push(null);
+                        chartLabels.push(null); velocities.push(null); times.push(null); rawAccelerations.push(null);
                     }
                 });
                 
                 const validIndices = velocities.map((v, i) => v !== null ? i : -1).filter(i => i !== -1);
-                
                 const finalLabels = validIndices.map(i => chartLabels[i]);
                 const finalVelocities = validIndices.map(i => velocities[i]);
                 const finalRawAccelerations = validIndices.map(i => rawAccelerations[i]);
                 const finalTimes = validIndices.map(i => times[i]);
 
-                if (finalVelocities.length === 0) {
-                    throw new Error("No valid data found to plot.");
-                }
-
-                const smoothedAccelerations = cumulativeMovingAverage(finalRawAccelerations);
+                if (finalVelocities.length === 0) throw new Error("No valid data to plot.");
 
                 return {
                     labels: finalLabels,
                     velocityData: finalVelocities,
-                    accelerationData: smoothedAccelerations,
+                    accelerationData: cumulativeMovingAverage(finalRawAccelerations),
                     timeData: finalTimes
                 };
             }
 
-            function drawMetricsChart(chartData, smoothedVelocityData) {
+            // (UPDATED) Draws chart based on global state
+            function drawMetricsChart() {
                 const ctx = document.getElementById('velocity-chart').getContext('2d');
-                if (velocityChartInstance) {
-                    velocityChartInstance.destroy();
+                if (velocityChartInstance) velocityChartInstance.destroy();
+                
+                let datasets = [];
+                const dataA = analysisData.a;
+                const dataB = analysisData.b;
+
+                if (dataB) {
+                    // --- COMPARISON MODE ---
+                    if (activeChartMetric === 'velocity') {
+                        datasets = [
+                            { label: `File A (${dataA.fileInfo.trial})`, data: dataA.smoothedVelocities.map(v => v ? v.toFixed(2) : null), borderColor: '#3b82f6', yAxisID: 'y-velocity', tension: 0.1, pointRadius: 1, fill: false },
+                            { label: `File B (${dataB.fileInfo.trial})`, data: dataB.smoothedVelocities.map(v => v ? v.toFixed(2) : null), borderColor: '#ef4444', yAxisID: 'y-velocity', tension: 0.1, pointRadius: 1, fill: false }
+                        ];
+                    } else { // Acceleration
+                        datasets = [
+                            { label: `File A (${dataA.fileInfo.trial})`, data: dataA.chartData.accelerationData.map(a => a ? a.toFixed(2) : null), borderColor: '#3b82f6', yAxisID: 'y-acceleration', tension: 0.4, pointRadius: 1, fill: false },
+                            { label: `File B (${dataB.fileInfo.trial})`, data: dataB.chartData.accelerationData.map(a => a ? a.toFixed(2) : null), borderColor: '#ef4444', yAxisID: 'y-acceleration', tension: 0.4, pointRadius: 1, fill: false }
+                        ];
+                    }
+                } else if (dataA) {
+                    // --- SINGLE FILE MODE ---
+                    datasets = [
+                        { label: 'Smoothed Velocity (m/s)', data: dataA.smoothedVelocities.map(v => v ? v.toFixed(2) : null), borderColor: '#3b82f6', yAxisID: 'y-velocity', tension: 0.1, pointRadius: 1, fill: false },
+                        { label: `Acceleration (m/s²)`, data: dataA.chartData.accelerationData.map(a => a ? a.toFixed(2) : null), borderColor: '#ec4899', yAxisID: 'y-acceleration', tension: 0.4, pointRadius: 1, fill: false }
+                    ];
                 }
+
                 velocityChartInstance = new Chart(ctx, {
                     type: 'line',
-                    data: {
-                        labels: chartData.labels,
-                        datasets: [
-                            {
-                                label: 'Smoothed Velocity (m/s)',
-                                data: smoothedVelocityData.map(v => v ? v.toFixed(2) : null),
-                                borderColor: '#3b82f6',
-                                fill: false,
-                                tension: 0.1,
-                                pointRadius: 1,
-                                pointHoverRadius: 5,
-                                yAxisID: 'y-velocity'
-                            },
-                            {
-                                label: `Acceleration (m/s²) - Cumulative Avg`,
-                                data: chartData.accelerationData.map(a => a ? a.toFixed(2) : null),
-                                borderColor: '#ec4899',
-                                fill: false,
-                                tension: 0.4,
-                                pointRadius: 1,
-                                pointHoverRadius: 5,
-                                yAxisID: 'y-acceleration'
-                            }
-                        ]
-                    },
+                    data: { labels: dataA.chartData.labels, datasets: datasets },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        interaction: { mode: 'index', intersect: false },
+                        responsive: true, maintainAspectRatio: true, interaction: { mode: 'index', intersect: false },
                         scales: {
-                            x: {
-                                title: { display: true, text: 'Distance (m)', font: { size: 14 } },
-                            },
-                            'y-velocity': {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: { display: true, text: 'Velocity (m/s)', font: { size: 14 }, color: '#3b82f6' },
-                                beginAtZero: true
-                            },
-                            'y-acceleration': {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: { display: true, text: 'Acceleration (m/s²)', font: { size: 14 }, color: '#ec4899' },
-                                grid: { drawOnChartArea: false }
-                            }
+                            x: { title: { display: true, text: 'Distance (m)', font: { size: 14 } } },
+                            'y-velocity': { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Velocity (m/s)', font: { size: 14 }, color: '#3b82f6' }, beginAtZero: true },
+                            'y-acceleration': { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Acceleration (m/s²)', font: { size: 14 }, color: '#ec4899' }, grid: { drawOnChartArea: false } }
                         },
                         plugins: {
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    title: (tooltipItems) => `Distance: ${tooltipItems[0].label} m`,
-                                    label: (tooltipItem) => {
-                                        const datasetLabel = tooltipItem.dataset.label || '';
-                                        const value = tooltipItem.raw;
-                                        if (!value) return null;
-                                        if (datasetLabel.includes('Velocity')) return `Velocity: ${parseFloat(value).toFixed(2)} m/s`;
-                                        if (datasetLabel.includes('Acceleration')) return `Acceleration: ${parseFloat(value).toFixed(2)} m/s²`;
-                                        return `${datasetLabel}: ${value}`;
-                                    }
-                                }
-                            },
-                            zoom: {
-                                pan: { enabled: true, mode: 'x' },
-                                zoom: {
-                                    wheel: { enabled: false },
-                                    pinch: { enabled: false },
-                                    drag: { enabled: true, mode: 'x' },
-                                }
-                            }
+                            tooltip: { mode: 'index', intersect: false, callbacks: { title: (items) => `Distance: ${items[0].label} m` } },
+                            zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: false }, pinch: { enabled: false }, drag: { enabled: true, mode: 'x' } } }
                         }
                     }
                 });
             }
 
-            function drawSplitChart(canvasId, labels, data, dataUnit) {
+            // (UPDATED) Can now handle one or more datasets
+            function drawSplitChart(canvasId, labels, datasets, dataUnit) {
                 const ctx = document.getElementById(canvasId);
                 if (!ctx) return;
+                
+                let yMin = 0, yMax = 1;
+                // (UPDATED) Check all datasets for min/max
+                const allData = datasets.flatMap(ds => ds.data).filter(v => v !== null && isFinite(v));
 
-                // (NEW) Calculate Y-axis padding
-                let yMin = 0;
-                let yMax = 1; // Default
-                
-                const validData = data.filter(v => v !== null && isFinite(v));
-                
-                if (validData.length > 0) {
-                    const dataMin = Math.min(...validData);
-                    const dataMax = Math.max(...validData);
+                if (allData.length > 0) {
+                    const dataMin = Math.min(...allData);
+                    const dataMax = Math.max(...allData);
                     const padding = (dataMax - dataMin) * 0.1;
-
-                    // Set a minimum padding if range is 0 (e.g., all values are 5)
                     const finalPadding = padding === 0 ? (dataMax === 0 ? 1 : dataMax * 0.1) : padding; 
-
                     yMin = dataMin - finalPadding;
                     yMax = dataMax + finalPadding;
-
-                    // Ensure yMin is never positive if dataMin is 0 or positive
-                    if (dataMin >= 0 && yMin < 0) {
-                        yMin = 0;
-                    }
+                    if (dataMin >= 0 && yMin < 0) yMin = 0;
                 }
                 
+                // (UPDATED) Create datasets for chart
+                const chartDatasets = datasets.map(ds => ({
+                    label: ds.label,
+                    data: ds.data,
+                    fill: false,
+                    borderColor: ds.color || '#3b82f6',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: ds.color || '#3b82f6'
+                }));
+
                 const chart = new Chart(ctx, {
                     type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: dataUnit,
-                            data: data,
-                            fill: false,
-                            borderColor: '#3b82f6',
-                            borderWidth: 2,
-                            tension: 0.1,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#3b82f6'
-                        }]
-                    },
+                    data: { labels, datasets: chartDatasets }, // (UPDATED)
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                // (UPDATED) Use calculated min/max
-                                min: yMin,
-                                max: yMax,
-                                title: { display: true, text: dataUnit, font: { size: 10 } }
-                            },
-                            x: { ticks: { font: { size: 10 } } }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    title: (tooltipItems) => `Split: ${tooltipItems[0].label}`,
-                                    label: (tooltipItem) => {
-                                        let value = tooltipItem.raw;
-                                        if (typeof value === 'number') {
-                                            if (dataUnit === 'spm' || dataUnit === 'strokes') value = value.toFixed(1);
-                                            else value = value.toFixed(2);
-                                        }
-                                        return `${dataUnit}: ${value}`;
-                                    }
-                                }
-                            }
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { min: yMin, max: yMax, title: { display: true, text: dataUnit, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } },
+                        plugins: { 
+                            legend: { display: datasets.length > 1 }, // (UPDATED) Show legend only for comparison
+                            tooltip: { callbacks: { title: (items) => `Split: ${items[0].label}` } } 
                         }
                     }
                 });
@@ -755,91 +750,56 @@
 
             function calculateSegmentMetrics(velocities, times, smoothingWindow) {
                 if (!velocities || velocities.length === 0 || !times || times.length === 0 || velocities.length !== times.length) {
-                    // (UPDATED) Add strokeLength
                     return { strokeCount: 0, peakVelocity: 0, averageVelocity: 0, totalTime: 0, strokeRate: 0, eWPS: 0, strokeLength: 0 };
                 }
 
                 const smoothedVelocities = simpleMovingAverage(velocities, smoothingWindow).filter(v => v !== null);
-
                 let strokeCount = 0;
                 if (smoothedVelocities.length > 0) {
                     const smoothedSum = smoothedVelocities.reduce((acc, v) => acc + v, 0);
                     const avgSmoothedVel = smoothedSum / smoothedVelocities.length;
                     let wasBelowAverage = true;
                     for (const currentVel of smoothedVelocities) {
-                        if (currentVel > avgSmoothedVel && wasBelowAverage) {
-                            strokeCount++;
-                            wasBelowAverage = false; 
-                        } else if (currentVel < avgSmoothedVel) {
-                            wasBelowAverage = true; 
-                        }
+                        if (currentVel > avgSmoothedVel && wasBelowAverage) { strokeCount++; wasBelowAverage = false; }
+                        else if (currentVel < avgSmoothedVel) wasBelowAverage = true; 
                     }
                 }
 
-                let peakVelocity = 0;
-                let velocitySum = 0;
-                for (const v of velocities) {
-                    if (v > peakVelocity) peakVelocity = v;
-                    velocitySum += v;
-                }
+                let peakVelocity = 0, velocitySum = 0;
+                for (const v of velocities) { if (v > peakVelocity) peakVelocity = v; velocitySum += v; }
                 
                 const totalTime = times.reduce((acc, t) => acc + t, 0);
                 const averageVelocity = (velocities.length > 0) ? (velocitySum / velocities.length) : 0;
                 
-                let strokeRate = 0;
-                let eWPS = 0;
+                let strokeRate = 0, eWPS = 0, strokeLength = 0;
                 if (totalTime > 0 && strokeCount > 0) {
                     strokeRate = (strokeCount / totalTime) * 60;
-                    const strokesPerSecond = strokeCount / totalTime;
-                    eWPS = (averageVelocity ** 3) / strokesPerSecond;
+                    eWPS = (averageVelocity ** 3) / (strokeRate / 60);
                 }
-
-                // (NEW) Calculate distance and stroke length
-                const distance = velocities.length * 0.02; // 0.02m per data point
-                let strokeLength = 0;
-                if (strokeCount > 0) {
-                    strokeLength = distance / strokeCount;
-                }
+                const distance = velocities.length * 0.02;
+                if (strokeCount > 0) strokeLength = distance / strokeCount;
                 
-                // (UPDATED) Add strokeLength
                 return { strokeCount, peakVelocity, averageVelocity, totalTime, strokeRate, eWPS, strokeLength };
             }
 
             function calculateAllMetrics(velocities, times, trialName) {
                 const distancePerPoint = 0.02;
                 const smoothingWindow = (trialName.toUpperCase() === "MAX") ? 10 : 20;
-
                 const totalMetrics = calculateSegmentMetrics(velocities, times, smoothingWindow);
-
                 const splitMetrics = [];
                 const splitEndMeters = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-                let startRow = 0;
-                let startMeter = 0;
+                let startRow = 0, startMeter = 0;
 
                 for (const endMeter of splitEndMeters) {
                     const endRow = Math.round(endMeter / distancePerPoint);
                     const segmentVelocities = velocities.slice(startRow, endRow);
                     const segmentTimes = times.slice(startRow, endRow);
                     const segmentMetrics = calculateSegmentMetrics(segmentVelocities, segmentTimes, smoothingWindow);
-
-                    splitMetrics.push({
-                        label: `${startMeter}m - ${endMeter}m`,
-                        metrics: segmentMetrics
-                    });
-
-                    startRow = endRow;
-                    startMeter = endMeter;
+                    splitMetrics.push({ label: `${startMeter}m - ${endMeter}m`, metrics: segmentMetrics });
+                    startRow = endRow; startMeter = endMeter;
                     if (startRow >= velocities.length) break;
                 }
-                
-                const smoothedVelocities = simpleMovingAverage(velocities, smoothingWindow);
-                
-                return {
-                    metrics: totalMetrics,
-                    splitMetrics: splitMetrics,
-                    smoothedVelocities: smoothedVelocities, 
-                    smoothingWindow: smoothingWindow 
-                };
+                return { metrics: totalMetrics, splitMetrics, smoothedVelocities: simpleMovingAverage(velocities, smoothingWindow), smoothingWindow };
             }
             
             function pivotSplitData(splitMetrics) {
@@ -850,23 +810,15 @@
                     peakVelocity: { label: "Peak Velocity", unit: "m/s", data: [] },
                     strokeCount: { label: "Strokes", unit: "strokes", data: [] },
                     strokeRate: { label: "Stroke Rate", unit: "spm", data: [] },
-                    // (NEW) Add strokeLength
                     strokeLength: { label: "Stroke Length", unit: "m", data: [] },
                     eWPS: { label: "eWPS", unit: "", data: [] }
                 };
-
                 for (const split of splitMetrics) {
-                    metricData.totalTime.data.push(split.metrics.totalTime);
-                    metricData.averageVelocity.data.push(split.metrics.averageVelocity);
-                    metricData.peakVelocity.data.push(split.metrics.peakVelocity);
-                    metricData.strokeCount.data.push(split.metrics.strokeCount);
-                    metricData.strokeRate.data.push(split.metrics.strokeRate);
-                    // (NEW) Add strokeLength
-                    metricData.strokeLength.data.push(split.metrics.strokeLength);
-                    metricData.eWPS.data.push(split.metrics.eWPS);
+                    for (const key in metricData) {
+                        metricData[key].data.push(split.metrics[key]);
+                    }
                 }
-
-                return { labels: labels, metrics: metricData };
+                return { labels, metrics: metricData };
             }
 
             // --- Display Functions ---
@@ -874,117 +826,208 @@
             function showMessage(type, text) {
                 messageArea.innerHTML = text;
                 messageArea.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+                const typeClasses = {
+                    error: ['bg-red-100', 'text-red-700'],
+                    success: ['bg-green-100', 'text-green-700'],
+                    info: ['bg-blue-100', 'text-blue-700']
+                };
+                messageArea.classList.add(...(typeClasses[type] || typeClasses.info));
+            }
+
+            // (NEW) Single File Info
+            function displaySingleFileInfo() {
+                const info = analysisData.a.fileInfo;
+                fileInfoContainer.innerHTML = `
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">File Information</h2>
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="p-4 bg-white rounded-lg shadow">
+                            <span class="font-semibold text-gray-500 block text-xs uppercase">Athlete</span>
+                            <span class="text-lg font-bold">${info.firstName} ${info.lastName}</span>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow">
+                            <span class="font-semibold text-gray-500 block text-xs uppercase">Trial</span>
+                            <span class="text-lg font-bold">${info.trial}</span>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow">
+                            <span class="font-semibold text-gray-500 block text-xs uppercase">Date & Time</span>
+                            <span class="text-lg font-bold">${info.date} @ ${info.time}</span>
+                        </div>
+                    </div>`;
+            }
+
+            // (NEW) Comparison File Info
+            function displayComparisonFileInfo() {
+                const infoA = analysisData.a.fileInfo;
+                const infoB = analysisData.b.fileInfo;
+                fileInfoContainer.innerHTML = `
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">File Comparison</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- File A Info -->
+                        <div class="bg-blue-50 p-4 rounded-lg shadow-inner">
+                            <h3 class="font-bold text-lg text-blue-800 mb-2">File A: ${infoA.trial}</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div class="p-3 bg-white rounded-lg shadow">
+                                    <span class="font-semibold text-gray-500 block text-xs uppercase">Athlete</span>
+                                    <span class="text-md font-bold">${infoA.firstName} ${infoA.lastName}</span>
+                                </div>
+                                <div class="p-3 bg-white rounded-lg shadow">
+                                    <span class="font-semibold text-gray-500 block text-xs uppercase">Date</span>
+                                    <span class="text-md font-bold">${infoA.date} @ ${infoA.time}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- File B Info -->
+                        <div class="bg-red-50 p-4 rounded-lg shadow-inner">
+                            <h3 class="font-bold text-lg text-red-800 mb-2">File B: ${infoB.trial}</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                <div class="p-3 bg-white rounded-lg shadow">
+                                    <span class="font-semibold text-gray-500 block text-xs uppercase">Athlete</span>
+                                    <span class="text-md font-bold">${infoB.firstName} ${infoB.lastName}</span>
+                                </div>
+                                <div class="p-3 bg-white rounded-lg shadow">
+                                    <span class="font-semibold text-gray-500 block text-xs uppercase">Date</span>
+                                    <span class="text-md font-bold">${infoB.date} @ ${infoB.time}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            // (NEW) Single Metrics Display
+            function displaySingleMetrics() {
+                const { metrics, smoothingWindow } = analysisData.a;
+                metricsContainer.innerHTML = `
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Key Metrics (100m Total)</h2>
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        ${createMetricTile('Total Time', metrics.totalTime.toFixed(2), 's')}
+                        ${createMetricTile('Total Strokes', metrics.strokeCount, `(${smoothingWindow}-pt Avg Cross)`)}
+                        ${createMetricTile('Stroke Rate', metrics.strokeRate.toFixed(1), 'spm')}
+                        ${createMetricTile('Average Velocity', metrics.averageVelocity.toFixed(2), 'm/s')}
+                        ${createMetricTile('Peak Velocity', metrics.peakVelocity.toFixed(2), 'm/s')}
+                        ${createMetricTile('Stroke Length', metrics.strokeLength.toFixed(2), 'm')}
+                        ${createMetricTile('eWPS', metrics.eWPS.toFixed(2), 'AvgVel³ / (SR/60)')}
+                    </div>`;
+            }
+
+            // (NEW) Comparison Metrics Display
+            function displayComparisonMetrics() {
+                const metricsA = analysisData.a.metrics;
+                const metricsB = analysisData.b.metrics;
+                metricsContainer.innerHTML = `
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Key Metrics Comparison (100m Total)</h2>
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        ${createComparisonTile('Total Time', metricsA.totalTime, metricsB.totalTime, 's', 2)}
+                        ${createComparisonTile('Total Strokes', metricsA.strokeCount, metricsB.strokeCount, '', 0)}
+                        ${createComparisonTile('Stroke Rate', metricsA.strokeRate, metricsB.strokeRate, 'spm', 1)}
+                        ${createComparisonTile('Average Velocity', metricsA.averageVelocity, metricsB.averageVelocity, 'm/s', 2)}
+                        ${createComparisonTile('Peak Velocity', metricsA.peakVelocity, metricsB.peakVelocity, 'm/s', 2)}
+                        ${createComparisonTile('Stroke Length', metricsA.strokeLength, metricsB.strokeLength, 'm', 2)}
+                        ${createComparisonTile('eWPS', metricsA.eWPS, metricsB.eWPS, '', 2)}
+                    </div>`;
+            }
+
+            // (NEW) Helper for single metric tile
+            function createMetricTile(label, value, unit) {
+                return `
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">${label}</span>
+                        <span class="text-3xl font-bold text-blue-600">${value} ${unit === 's' || unit === 'm/s' || unit === 'spm' || unit === 'm' ? unit : ''}</span>
+                        <span class="text-xs text-gray-400 block">${unit !== 's' && unit !== 'm/s' && unit !== 'spm' && unit !== 'm' ? unit : ''}</span>
+                    </div>`;
+            }
+
+            // (NEW) Helper for comparison metric tile
+            function createComparisonTile(label, valueA, valueB, unit, precision) {
+                const diff = valueB - valueA;
+                const diffSign = diff > 0 ? '+' : '';
+                const diffColor = diff > 0 ? 'text-green-600' : (diff < 0 ? 'text-red-600' : 'text-gray-500');
                 
-                if (type === 'error') {
-                    messageArea.classList.add('bg-red-100', 'text-red-700');
-                } else if (type === 'success') {
-                    messageArea.classList.add('bg-green-100', 'text-green-700');
-                } else {
-                    messageArea.classList.add('bg-blue-100', 'text-blue-700');
+                return `
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">${label}</span>
+                        <div class="mt-1">
+                            <span class="text-2xl font-bold text-blue-600">${valueA.toFixed(precision)} ${unit}</span>
+                            <span class="text-gray-400 mx-1">|</span>
+                            <span class="text-2xl font-bold text-red-600">${valueB.toFixed(precision)} ${unit}</span>
+                        </div>
+                        <div class="mt-1 text-lg font-semibold ${diffColor}">
+                            ${diffSign}${diff.toFixed(precision)} ${unit}
+                        </div>
+                    </div>`;
+            }
+
+            // (NEW) Single Splits Display
+            function displaySingleSplits() {
+                const pivotedData = pivotSplitData(analysisData.a.splitMetrics);
+                const accordion = document.getElementById('split-accordion');
+                accordion.innerHTML = createSplitAccordionHTML(pivotedData, 'a');
+                
+                // (FIXED) Find first open panel and draw all charts inside it
+                const firstOpenPanel = accordion.querySelector('div[id^="split-metric-"]:not(.hidden)');
+                if (firstOpenPanel) {
+                    firstOpenPanel.querySelectorAll('canvas').forEach(canvas => {
+                        const canvasId = canvas.id;
+                        if (canvasId && !splitChartInstances.has(canvasId)) {
+                            const chartData = JSON.parse(canvas.dataset.chartData);
+                            // (UPDATED) Pass datasets array
+                            drawSplitChart(canvasId, chartData.labels, chartData.datasets, chartData.unit);
+                        }
+                    });
+                }
+            }
+            
+            // (NEW) Comparison Splits Display
+            function displayComparisonSplits() {
+                const pivotedDataA = pivotSplitData(analysisData.a.splitMetrics);
+                const pivotedDataB = pivotSplitData(analysisData.b.splitMetrics);
+                
+                const accordion = document.getElementById('split-accordion');
+                accordion.innerHTML = createSplitAccordionHTML(pivotedDataA, 'a', pivotedDataB); // Pass both
+                
+                // (FIXED) Find first open panel and draw all charts inside it
+                const firstOpenPanel = accordion.querySelector('div[id^="split-metric-"]:not(.hidden)');
+                if (firstOpenPanel) {
+                    firstOpenPanel.querySelectorAll('canvas').forEach(canvas => {
+                        const canvasId = canvas.id;
+                        if (canvasId && !splitChartInstances.has(canvasId)) {
+                            const chartData = JSON.parse(canvas.dataset.chartData);
+                            // (UPDATED) Pass datasets array
+                            drawSplitChart(canvasId, chartData.labels, chartData.datasets, chartData.unit);
+                        }
+                    });
                 }
             }
 
-            function displayFileInfo(info) {
-                fileInfo.innerHTML = `
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-xs uppercase">Athlete</span>
-                        <span class="text-lg font-bold">${info.firstName} ${info.lastName}</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-xs uppercase">Trial</span>
-                        <span class="text-lg font-bold">${info.trial}</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-xs uppercase">Date & Time</span>
-                        <span class="text-lg font-bold">${info.date} @ ${info.time}</span>
-                    </div>
-                `;
-                fileInfoContainer.classList.remove('hidden');
-            }
-
-            function displayMetrics(metrics, smoothingWindow) {
-                metricsInfo.innerHTML = `
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">Total Time</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.totalTime.toFixed(2)} s</span>
-                        <span class="text-xs text-gray-400 block">(100m Effort)</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">Total Strokes</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.strokeCount}</span>
-                        <span class="text-xs text-gray-400 block">(${smoothingWindow}-pt Avg Cross)</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">Stroke Rate</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.strokeRate.toFixed(1)} spm</span>
-                        <span class="text-xs text-gray-400 block">(Avg. Strokes per min)</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">Average Velocity</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.averageVelocity.toFixed(2)} m/s</span>
-                        <span class="text-xs text-gray-400 block">(Raw Data Avg)</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">Peak Velocity</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.peakVelocity.toFixed(2)} m/s</span>
-                        <span class="text-xs text-gray-400 block">(Raw Data Peak)</span>
-                    </div>
-                    <!-- (NEW) Add strokeLength -->
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">Stroke Length</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.strokeLength.toFixed(2)} m</span>
-                        <span class="text-xs text-gray-400 block">(Dist / Stroke)</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <span class="font-semibold text-gray-500 block text-sm uppercase">eWPS</span>
-                        <span class="text-3xl font-bold text-blue-600">${metrics.eWPS.toFixed(2)}</span>
-                        <span class="text-xs text-gray-400 block">(AvgVel³ / (SR/60))</span>
-                    </div>
-                `;
-                metricsContainer.classList.remove('hidden');
-            }
-
-            function displaySplitMetrics(splitMetrics) {
-                const accordion = document.getElementById('split-accordion');
-                let allSplitHtml = ''; // (NEW) Accumulate HTML
-
+            // (NEW) Helper to generate accordion HTML for 1 or 2 files
+            function createSplitAccordionHTML(pivotedDataA, suffixA, pivotedDataB = null) {
+                let allSplitHtml = '';
                 splitChartInstances.forEach(chart => chart.destroy());
                 splitChartInstances.clear();
-
-                const pivotedData = pivotSplitData(splitMetrics);
                 
                 let isOpen = true; 
-
-                for (const [metricKey, metricInfo] of Object.entries(pivotedData.metrics)) {
+                
+                for (const [metricKey, metricInfoA] of Object.entries(pivotedDataA.metrics)) {
                     const contentId = `split-metric-${metricKey}`;
-                    const canvasId = `chart-metric-${metricKey}`;
                     
-                    let dataListHtml = pivotedData.labels.map((label, index) => {
-                        let formattedValue;
-                        const value = metricInfo.data[index];
-                        
-                        if (value === null || isNaN(value)) formattedValue = 'N/A';
-                        else if (metricKey === 'strokeCount') formattedValue = value;
-                        else if (metricKey === 'strokeRate') formattedValue = value.toFixed(1);
-                        // (NEW) Add strokeLength
-                        else if (metricKey === 'strokeLength') formattedValue = value.toFixed(2);
-                        else if (metricKey === 'eWPS') formattedValue = value.toFixed(2);
-                         else formattedValue = value.toFixed(2);
-                        
-                        const unit = metricInfo.unit || '';
+                    const metricInfoB = pivotedDataB ? pivotedDataB.metrics[metricKey] : null;
 
-                        return `
-                            <div class="flex-shrink-0 w-32 mr-2 p-3 bg-white rounded-lg shadow-inner text-center">
-                                <span class="font-semibold text-gray-500 block text-xs uppercase">${label}</span>
-                                <span class="text-lg font-bold text-blue-600">${formattedValue} ${unit}</span>
-                            </div>
-                        `;
-                    }).join('');
-
+                    // (NEW) Build chart data based on 1 or 2 files
+                    let chartDatasets = [{
+                        label: `File A (${analysisData.a.fileInfo.trial})`,
+                        data: metricInfoA.data,
+                        color: '#3b82f6'
+                    }];
+                    if (metricInfoB) {
+                        chartDatasets.push({
+                            label: `File B (${analysisData.b.fileInfo.trial})`,
+                            data: metricInfoB.data,
+                            color: '#ef4444'
+                        });
+                    }
                     const chartData = {
-                        labels: pivotedData.labels,
-                        data: metricInfo.data,
-                        unit: metricInfo.unit
+                        labels: pivotedDataA.labels,
+                        datasets: chartDatasets,
+                        unit: metricInfoA.unit
                     };
 
                     allSplitHtml += `
@@ -992,43 +1035,66 @@
                             <button 
                                 data-accordion-toggle="true" 
                                 data-accordion-target="${contentId}"
-                                data-chart-data='${JSON.stringify(chartData)}'
                                 class="w-full flex justify-between items-center p-4 font-semibold text-gray-700 hover:bg-gray-50 transition"
                             >
-                                <span>${metricInfo.label}</span>
+                                <span>${metricInfoA.label}</span>
                                 <svg class="w-5 h-5 transition-transform transform ${isOpen ? '' : 'rotate-180'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
                             
                             <div id="${contentId}" class="p-4 bg-gray-50 border-t border-gray-200 ${isOpen ? '' : 'hidden'}">
-                                <div class="split-data-list mb-4">
-                                    ${dataListHtml}
+                                <!-- (NEW) Single canvas for overlayed chart -->
+                                <div class="w-full h-64 mb-4">
+                                    <canvas id="chart-metric-${metricKey}" data-chart-data='${JSON.stringify(chartData)}'></canvas>
                                 </div>
-                                <div class="w-full h-64">
-                                    <canvas id="${canvasId}"></canvas>
+                                <!-- (NEW) Stacked data tiles -->
+                                <div class="split-data-list">
+                                    ${pivotedDataA.labels.map((label, index) => createSplitTileHTML(
+                                        label, 
+                                        metricInfoA.data[index], 
+                                        metricInfoA.unit, 
+                                        'a',
+                                        metricInfoB ? metricInfoB.data[index] : null,
+                                        metricInfoB ? metricInfoB.unit : null,
+                                        'b'
+                                    )).join('')}
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                     
-                    isOpen = false; // Only first one is open
+                    isOpen = false;
                 }
-
-                // (NEW) Set HTML all at once
-                accordion.innerHTML = allSplitHtml;
-
-                // (NEW) Now that HTML is in the DOM, draw the first chart
-                const firstCanvasId = accordion.querySelector('canvas')?.id;
-                const firstButton = accordion.querySelector('button[data-chart-data]');
-                if (firstCanvasId && firstButton) {
-                    try {
-                        const chartData = JSON.parse(firstButton.dataset.chartData);
-                        drawSplitChart(firstCanvasId, chartData.labels, chartData.data, chartData.unit);
-                    } catch (e) {
-                        console.error("Failed to parse or draw first split chart:", e);
-                    }
-                }
+                return allSplitHtml;
             }
 
+            // (NEW) Helper to generate the *content* of a split (tiles + chart)
+            function createSplitTileHTML(label, valueA, unitA, suffixA, valueB, unitB, suffixB) {
+                
+                const formatValue = (value, unit) => {
+                    if (value === null || isNaN(value)) return 'N/A';
+                    if (unit === 'strokes') return value;
+                    if (unit === 'spm') return value.toFixed(1);
+                    return value.toFixed(2);
+                };
+
+                const valueAHtml = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-blue-700">File A:</span>
+                        <span class="text-lg font-bold text-blue-600">${formatValue(valueA, unitA)} ${unitA}</span>
+                    </div>`;
+                
+                const valueBHtml = valueB !== null ? `
+                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-gray-200">
+                        <span class="text-sm font-medium text-red-700">File B:</span>
+                        <span class="text-lg font-bold text-red-600">${formatValue(valueB, unitB)} ${unitB}</span>
+                    </div>` : '';
+
+                return `
+                    <div class="flex-shrink-0 w-40 mr-2 p-3 bg-white rounded-lg shadow-inner">
+                        <span class="font-semibold text-gray-500 block text-xs uppercase text-center mb-2">${label}</span>
+                        ${valueAHtml}
+                        ${valueBHtml}
+                    </div>`;
+            }
         });
     </script>
 </body>
