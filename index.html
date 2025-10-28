@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testing Data Loader</title>
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- 3. Chart.js Zoom Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for split data */
+        .split-data-list {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            white-space: nowrap;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: thin; /* Firefox */
+        }
+        .split-data-list::-webkit-scrollbar {
+            height: 8px;
+        }
+        .split-data-list::-webkit-scrollbar-track {
+            background: #f1f5f9; /* gray-100 */
+            border-radius: 10px;
+        }
+        .split-data-list::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* gray-400 */
+            border-radius: 10px;
+        }
+        .split-data-list::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* gray-500 */
+        }
+        /* Simple spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 antialiased">
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Canoe Slalom Performance Dashboard</h1>
+        </header>
+
+        <main>
+            <!-- 1. (NEW) Data Selection -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-inner mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Data Selection</h2>
+                <div id="loader-area" class="flex items-center space-x-2 text-gray-600 hidden">
+                    <div class="spinner"></div>
+                    <span id="loader-text">Loading...</span>
+                </div>
+                <!-- FIXED: 'class_l' typo -->
+                <div id="selection-ui" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Athlete Dropdown -->
+                    <div>
+                        <label for="athlete-select" class="block text-sm font-medium text-gray-700">1. Select Athlete</label>
+                        <select id="athlete-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <!-- Date Dropdown -->
+                    <div>
+                        <label for="date-select" class="block text-sm font-medium text-gray-700">2. Select Date</label>
+                        <select id="date-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                            <option value="">Select athlete first</option>
+                        </select>
+                    </div>
+                    <!-- File Dropdown -->
+                    <div>
+                        <label for="file-select" class="block text-sm font-medium text-gray-700">3. Select Trial</label>
+                        <select id="file-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                            <option value="">Select date first</option>
+                        </select>
+                    </div>
+                    <!-- Load Button -->
+                    <div>
+                        <label for="load-data-btn" class="block text-sm font-medium text-transparent">4. Load</label>
+                        <button id="load-data-btn" class="mt-1 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition disabled:bg-gray-300" disabled>
+                            Load Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Message/Error Area -->
+            <div id="message-area" class="hidden mt-6 p-4 rounded-lg">
+                <!-- Content will be injected by JS -->
+            </div>
+
+            <!-- 3. File Info Display -->
+            <div id="file-info-container" class="hidden mt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">File Information</h2>
+                <div id="file-info" class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <!-- Content will be injected by JS -->
+                </div>
+            </div>
+
+            <!-- 4. Key Metrics -->
+            <div id="metrics-container" class="hidden mt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Key Metrics (100m Total)</h2>
+                <!-- (UPDATED) grid-cols for 7 items -->
+                <div id="metrics-info" class="bg-gray-50 p-6 rounded-lg shadow-inner grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Content will be injected by JS -->
+                </div>
+            </div>
+
+            <!-- 5. Velocity Chart -->
+            <div id="chart-container" class="hidden mt-8">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-800">Performance Chart</h2>
+                    <button id="reset-zoom-btn" class="mt-2 sm:mt-0 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                        Reset Zoom
+                    </button>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                    <canvas id="velocity-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- 6. Split Analysis -->
+            <div id="split-analysis-container" class="hidden mt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Split Analysis (100m)</h2>
+                <div id="split-accordion" class="space-y-2">
+                    <!-- Collapsible split data will be injected by JS -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Global chart instances
+        let velocityChartInstance = null;
+        let splitChartInstances = new Map();
+
+        // (NEW) GitHub API Constants
+        const GH_USER = 'NickPez36';
+        const GH_REPO = 'CSLX-Stroke-Efficiency-Testing';
+        const API_BASE_URL = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/`;
+        const DATA_PATH = 'data';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all DOM elements
+            const messageArea = document.getElementById('message-area');
+            const fileInfoContainer = document.getElementById('file-info-container');
+            const fileInfo = document.getElementById('file-info');
+            const metricsContainer = document.getElementById('metrics-container');
+            const metricsInfo = document.getElementById('metrics-info');
+            const chartContainer = document.getElementById('chart-container');
+            const resetZoomBtn = document.getElementById('reset-zoom-btn');
+            const splitAnalysisContainer = document.getElementById('split-analysis-container');
+
+            // (NEW) Selection UI Elements
+            const loaderArea = document.getElementById('loader-area');
+            const loaderText = document.getElementById('loader-text');
+            const athleteSelect = document.getElementById('athlete-select');
+            const dateSelect = document.getElementById('date-select');
+            const fileSelect = document.getElementById('file-select');
+            const loadDataBtn = document.getElementById('load-data-btn');
+
+            // --- (NEW) GitHub API Functions ---
+
+            function showLoader(text) {
+                loaderText.textContent = text;
+                loaderArea.classList.remove('hidden');
+            }
+
+            function hideLoader() {
+                loaderArea.classList.add('hidden');
+            }
+
+            // (UPDATED) More robust error handling
+            async function handleApiError(response, error) {
+                let errorMsg = 'Failed to load data from GitHub. Please check console.';
+                if (error) {
+                    // General network error (e.g., CORS, DNS)
+                    console.error('GitHub API Error:', error);
+                    errorMsg += ` ${error.message}.`;
+                } else if (response) {
+                    // API error (404, 500, etc.)
+                    console.error(`GitHub API Error: ${response.status} ${response.statusText}`);
+                    errorMsg += ` Status: ${response.status} ${response.statusText}.`;
+                    if (response.status === 404) {
+                        errorMsg += ' The requested file or folder was not found.';
+                    } else if (response.status === 403) {
+                        errorMsg += ' API rate limit exceeded. Please wait a moment and try again.';
+                    }
+                }
+                
+                showMessage('error', errorMsg);
+                hideLoader();
+            }
+
+            // 1. Load Athletes
+            async function loadAthletes() {
+                showLoader('Loading athletes...');
+                try {
+                    const response = await fetch(API_BASE_URL + DATA_PATH);
+                    if (!response.ok) {
+                        await handleApiError(response); // Pass the whole response
+                        return; // Stop execution
+                    }
+                    const data = await response.json();
+                    
+                    const athleteFolders = data.filter(item => item.type === 'dir');
+                    athleteSelect.innerHTML = '<option value="">Select athlete</option>';
+                    athleteFolders.forEach(folder => {
+                        const option = new Option(folder.name, folder.name);
+                        athleteSelect.add(option);
+                    });
+                    athleteSelect.disabled = false;
+                } catch (error) {
+                    // This catches network errors before a response is received
+                    await handleApiError(null, error);
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            // 2. Load Dates
+            async function loadDates(athleteName) {
+                if (!athleteName) return;
+                showLoader(`Loading dates for ${athleteName}...`);
+                
+                // Reset subsequent dropdowns
+                dateSelect.innerHTML = '<option value="">Select date</option>';
+                dateSelect.disabled = true;
+                fileSelect.innerHTML = '<option value="">Select date first</option>';
+                fileSelect.disabled = true;
+                loadDataBtn.disabled = true;
+
+                try {
+                    const path = `${DATA_PATH}/${encodeURIComponent(athleteName)}`;
+                    const response = await fetch(API_BASE_URL + path);
+                    if (!response.ok) {
+                        await handleApiError(response);
+                        return;
+                    }
+                    const data = await response.json();
+
+                    const dateFolders = data.filter(item => item.type === 'dir' && /^\d{8}$/.test(item.name));
+                    dateFolders.forEach(folder => {
+                        const option = new Option(folder.name, folder.name);
+                        dateSelect.add(option);
+                    });
+                    dateSelect.disabled = false;
+                } catch (error) {
+                    await handleApiError(null, error);
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            // 3. Load Files
+            async function loadFiles(athleteName, dateFolder) {
+                if (!dateFolder) return;
+                showLoader(`Loading files for ${dateFolder}...`);
+
+                // Reset subsequent dropdowns
+                fileSelect.innerHTML = '<option value="">Select trial</option>';
+                fileSelect.disabled = true;
+                loadDataBtn.disabled = true;
+
+                try {
+                    const path = `${DATA_PATH}/${encodeURIComponent(athleteName)}/${encodeURIComponent(dateFolder)}`;
+                    const response = await fetch(API_BASE_URL + path);
+                    if (!response.ok) {
+                        await handleApiError(response);
+                        return;
+                    }
+                    const data = await response.json();
+
+                    const files = data.filter(item => item.type === 'file' && item.name.endsWith('.csv'));
+                    files.forEach(file => {
+                        const option = new Option(file.name, file.name);
+                        option.dataset.url = file.download_url; // Store download URL
+                        fileSelect.add(option);
+                    });
+                    fileSelect.disabled = false;
+                } catch (error) {
+                    await handleApiError(null, error);
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            // 4. Fetch selected file content
+            async function fetchSelectedFileContent() {
+                const selectedOption = fileSelect.selectedOptions[0];
+                if (!selectedOption || !selectedOption.dataset.url) return;
+
+                const fileName = selectedOption.value;
+                const downloadUrl = selectedOption.dataset.url;
+
+                showLoader(`Loading file: ${fileName}...`);
+                loadDataBtn.disabled = true;
+
+                try {
+                    const response = await fetch(downloadUrl);
+                    if (!response.ok) {
+                        await handleApiError(response);
+                        return;
+                    }
+                    const csvString = await response.text();
+
+                    // (NEW) Run the analysis using the fetched content
+                    runAnalysis(csvString, fileName);
+
+                } catch (error) {
+                    await handleApiError(null, error);
+                } finally {
+                    hideLoader();
+                    loadDataBtn.disabled = false;
+                }
+            }
+
+            // --- (NEW) Event Listeners for Dropdowns ---
+            athleteSelect.addEventListener('change', (e) => loadDates(e.target.value));
+            dateSelect.addEventListener('change', (e) => loadFiles(athleteSelect.value, e.target.value));
+            fileSelect.addEventListener('change', () => {
+                loadDataBtn.disabled = !fileSelect.value;
+            });
+            loadDataBtn.addEventListener('click', fetchSelectedFileContent);
+
+
+            // --- (REFACTORED) Main Analysis Function ---
+            function runAnalysis(csvString, fileName) {
+                // 1. Reset UI
+                showMessage('info', `Processing file: ${fileName}...`);
+                fileInfoContainer.classList.add('hidden');
+                metricsContainer.classList.add('hidden');
+                chartContainer.classList.add('hidden');
+                splitAnalysisContainer.classList.add('hidden');
+
+                let csvData, chartData, metricsResult, fileInfoData;
+                
+                try {
+                    // 2. Parse File Info
+                    fileInfoData = parseFileInfo(fileName);
+                    displayFileInfo(fileInfoData);
+
+                    // 3. Parse CSV content
+                    csvData = parseCSV(csvString);
+                    if (csvData.data.length === 0) {
+                        throw new Error("No data rows found. Check if headers are on row 29.");
+                    }
+
+                    // 4. Prepare data for charts
+                    chartData = prepareChartData(csvData.headers, csvData.data);
+                    if (chartData.labels.length === 0) {
+                        throw new Error("No valid chart data could be prepared.");
+                    }
+
+                    // 5. Calculate all metrics (total and splits)
+                    metricsResult = calculateAllMetrics(chartData.velocityData, chartData.timeData, fileInfoData.trial);
+                    
+                    // Display total metrics
+                    displayMetrics(metricsResult.metrics, metricsResult.smoothingWindow);
+                    metricsContainer.classList.remove('hidden');
+
+                    // Display split metrics (accordion)
+                    displaySplitMetrics(metricsResult.splitMetrics);
+                    splitAnalysisContainer.classList.remove('hidden');
+
+                    // 6. Draw Main Chart
+                    drawMetricsChart(chartData, metricsResult.smoothedVelocities);
+                    chartContainer.classList.remove('hidden');
+
+                    // 7. Success
+                    showMessage('success', 'File processed successfully. Results below.');
+
+                } catch (error) {
+                    showMessage('error', `An error occurred: ${error.message}`);
+                    console.error(error);
+                    // Hide all containers on failure
+                    fileInfoContainer.classList.add('hidden');
+                    metricsContainer.classList.add('hidden');
+                    chartContainer.classList.add('hidden');
+                    splitAnalysisContainer.classList.add('hidden');
+                }
+            }
+
+            // --- Zoom Reset Handler ---
+            resetZoomBtn.addEventListener('click', () => {
+                if (velocityChartInstance) {
+                    velocityChartInstance.resetZoom();
+                }
+            });
+
+            // --- Accordion Event Handler (for Split Analysis) ---
+            document.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-accordion-toggle]');
+                if (target) {
+                    const contentId = target.getAttribute('data-accordion-target');
+                    const content = document.getElementById(contentId);
+                    const icon = target.querySelector('svg');
+                    
+                    if (content) {
+                        content.classList.toggle('hidden');
+                        icon.classList.toggle('rotate-180');
+                        
+                        // Render chart on first open
+                        const canvasId = content.querySelector('canvas')?.id;
+                        if (canvasId && !content.classList.contains('hidden') && !splitChartInstances.has(canvasId)) {
+                            const chartData = JSON.parse(target.dataset.chartData);
+                            drawSplitChart(canvasId, chartData.labels, chartData.data, chartData.unit);
+                        }
+                    }
+                }
+            });
+
+            // --- Start application by loading athletes ---
+            loadAthletes();
+
+
+            // --- Parsing Functions ---
+
+            function parseFileInfo(filename) {
+                // Example: "20251028_120817_Dupras_Titouan_60SR.csv"
+                const regex = /^(\d{8})_(\d{6})_([^_]+)_([^_]+)_(\w+)$/;
+                const match = filename.replace('.csv', '').match(regex);
+                
+                if (!match) {
+                    // Fallback for filenames that might not have all parts but are still valid
+                    console.warn(`Filename ${filename} does not match expected format. Parsing athlete from folder structure.`);
+                    
+                    const athlete = athleteSelect.value;
+                    const date = dateSelect.value;
+                    const trial = filename.replace('.csv', '');
+                    
+                    // Try to get info from dropdowns as a fallback
+                    if(athlete && date) {
+                        const dateStr = `${date.substring(0, 4)}-${date.substring(4, 6)}-${date.substring(6, 8)}`;
+                        // Split athlete name like "Titouan Dupras"
+                        const nameParts = athlete.split(' ');
+                        const firstName = nameParts[0] || '';
+                        const lastName = nameParts.slice(1).join(' ') || ''; // Handle multi-part last names
+
+                        return {
+                            date: dateStr,
+                            time: "N/A",
+                            lastName: lastName,
+                            firstName: firstName,
+                            trial: trial
+                        }
+                    }
+                    throw new Error("Filename does not match expected format and athlete/date info is missing.");
+                }
+                
+                const [_, date, time, lastName, firstName, trial] = match;
+                
+                const formattedDate = `${date.substring(0, 4)}-${date.substring(4, 6)}-${date.substring(6, 8)}`;
+                const formattedTime = `${time.substring(0, 2)}:${time.substring(2, 4)}:${time.substring(4, 6)}`;
+
+                return {
+                    date: formattedDate,
+                    time: formattedTime,
+                    lastName,
+                    firstName,
+                    trial
+                };
+            }
+
+            function parseCSV(csvString, headerRow = 29) {
+                const rows = csvString.split(/\r?\n/); // Split by new line
+                
+                if (rows.length < headerRow + 1) {
+                    throw new Error(`File has fewer than ${headerRow + 1} rows. Cannot find headers.`);
+                }
+                const headers = rows[headerRow - 1].split(',').map(h => h.trim());
+                
+                const data = [];
+                for (let i = headerRow; i < rows.length; i++) {
+                    const row = rows[i].split(',').map(d => d.trim());
+                    if (row.length === headers.length && row[0] !== '') {
+                        data.push(row);
+                    }
+                }
+                
+                return { headers, data };
+            }
+
+            // --- Helper Functions ---
+
+            function simpleMovingAverage(data, windowSize) {
+                const smoothed = new Array(data.length).fill(null);
+                if (windowSize <= 0) return data;
+                let sum = 0;
+                for (let i = 0; i < data.length; i++) {
+                    sum += data[i];
+                    if (i >= windowSize) {
+                        sum -= data[i - windowSize];
+                        smoothed[i] = sum / windowSize;
+                    } else if (i === windowSize - 1) {
+                        smoothed[i] = sum / windowSize;
+                    }
+                }
+                return smoothed;
+            }
+
+            function cumulativeMovingAverage(data) {
+                const cma = new Array(data.length);
+                let sum = 0;
+                for (let i = 0; i < data.length; i++) {
+                    sum += data[i];
+                    cma[i] = sum / (i + 1);
+                }
+                return cma;
+            }
+
+            // --- Charting Functions ---
+
+            function prepareChartData(headers, data) {
+                const distanceInterval = 0.02; // 0.02m per row
+                const secondsIndex = headers.findIndex(h => h.toLowerCase() === 'seconds');
+                if (secondsIndex === -1) {
+                    throw new Error("'Seconds' column not found in CSV headers.");
+                }
+
+                const chartLabels = [];
+                const velocities = [];
+                const rawAccelerations = [];
+                const times = [];
+
+                data.forEach((row, index) => {
+                    const timeString = row[secondsIndex];
+                    const time = parseFloat(timeString);
+
+                    if (!isNaN(time) && time > 0) {
+                        const distance = (index + 1) * distanceInterval;
+                        const velocity = distanceInterval / time;
+
+                        chartLabels.push(distance.toFixed(2));
+                        velocities.push(velocity);
+                        times.push(time);
+
+                        if (index > 0 && velocities[index - 1] !== null) {
+                            const prevVelocity = velocities[index - 1];
+                            const acceleration = (velocity - prevVelocity) / time;
+                            rawAccelerations.push(acceleration);
+                        } else {
+                            rawAccelerations.push(0);
+                        }
+                    } else {
+                        chartLabels.push(null);
+                        velocities.push(null);
+                        times.push(null);
+                        rawAccelerations.push(null);
+                    }
+                });
+                
+                const validIndices = velocities.map((v, i) => v !== null ? i : -1).filter(i => i !== -1);
+                
+                const finalLabels = validIndices.map(i => chartLabels[i]);
+                const finalVelocities = validIndices.map(i => velocities[i]);
+                const finalRawAccelerations = validIndices.map(i => rawAccelerations[i]);
+                const finalTimes = validIndices.map(i => times[i]);
+
+                if (finalVelocities.length === 0) {
+                    throw new Error("No valid data found to plot.");
+                }
+
+                const smoothedAccelerations = cumulativeMovingAverage(finalRawAccelerations);
+
+                return {
+                    labels: finalLabels,
+                    velocityData: finalVelocities,
+                    accelerationData: smoothedAccelerations,
+                    timeData: finalTimes
+                };
+            }
+
+            function drawMetricsChart(chartData, smoothedVelocityData) {
+                const ctx = document.getElementById('velocity-chart').getContext('2d');
+                if (velocityChartInstance) {
+                    velocityChartInstance.destroy();
+                }
+                velocityChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [
+                            {
+                                label: 'Smoothed Velocity (m/s)',
+                                data: smoothedVelocityData.map(v => v ? v.toFixed(2) : null),
+                                borderColor: '#3b82f6',
+                                fill: false,
+                                tension: 0.1,
+                                pointRadius: 1,
+                                pointHoverRadius: 5,
+                                yAxisID: 'y-velocity'
+                            },
+                            {
+                                label: `Acceleration (m/s²) - Cumulative Avg`,
+                                data: chartData.accelerationData.map(a => a ? a.toFixed(2) : null),
+                                borderColor: '#ec4899',
+                                fill: false,
+                                tension: 0.4,
+                                pointRadius: 1,
+                                pointHoverRadius: 5,
+                                yAxisID: 'y-acceleration'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Distance (m)', font: { size: 14 } },
+                            },
+                            'y-velocity': {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Velocity (m/s)', font: { size: 14 }, color: '#3b82f6' },
+                                beginAtZero: true
+                            },
+                            'y-acceleration': {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: 'Acceleration (m/s²)', font: { size: 14 }, color: '#ec4899' },
+                                grid: { drawOnChartArea: false }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    title: (tooltipItems) => `Distance: ${tooltipItems[0].label} m`,
+                                    label: (tooltipItem) => {
+                                        const datasetLabel = tooltipItem.dataset.label || '';
+                                        const value = tooltipItem.raw;
+                                        if (!value) return null;
+                                        if (datasetLabel.includes('Velocity')) return `Velocity: ${parseFloat(value).toFixed(2)} m/s`;
+                                        if (datasetLabel.includes('Acceleration')) return `Acceleration: ${parseFloat(value).toFixed(2)} m/s²`;
+                                        return `${datasetLabel}: ${value}`;
+                                    }
+                                }
+                            },
+                            zoom: {
+                                pan: { enabled: true, mode: 'x' },
+                                zoom: {
+                                    wheel: { enabled: false },
+                                    pinch: { enabled: false },
+                                    drag: { enabled: true, mode: 'x' },
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function drawSplitChart(canvasId, labels, data, dataUnit) {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                // (NEW) Calculate Y-axis padding
+                let yMin = 0;
+                let yMax = 1; // Default
+                
+                const validData = data.filter(v => v !== null && isFinite(v));
+                
+                if (validData.length > 0) {
+                    const dataMin = Math.min(...validData);
+                    const dataMax = Math.max(...validData);
+                    const padding = (dataMax - dataMin) * 0.1;
+
+                    // Set a minimum padding if range is 0 (e.g., all values are 5)
+                    const finalPadding = padding === 0 ? (dataMax === 0 ? 1 : dataMax * 0.1) : padding; 
+
+                    yMin = dataMin - finalPadding;
+                    yMax = dataMax + finalPadding;
+
+                    // Ensure yMin is never positive if dataMin is 0 or positive
+                    if (dataMin >= 0 && yMin < 0) {
+                        yMin = 0;
+                    }
+                }
+                
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: dataUnit,
+                            data: data,
+                            fill: false,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                // (UPDATED) Use calculated min/max
+                                min: yMin,
+                                max: yMax,
+                                title: { display: true, text: dataUnit, font: { size: 10 } }
+                            },
+                            x: { ticks: { font: { size: 10 } } }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: (tooltipItems) => `Split: ${tooltipItems[0].label}`,
+                                    label: (tooltipItem) => {
+                                        let value = tooltipItem.raw;
+                                        if (typeof value === 'number') {
+                                            if (dataUnit === 'spm' || dataUnit === 'strokes') value = value.toFixed(1);
+                                            else value = value.toFixed(2);
+                                        }
+                                        return `${dataUnit}: ${value}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                splitChartInstances.set(canvasId, chart);
+            }
+
+            // --- Metrics Calculation ---
+
+            function calculateSegmentMetrics(velocities, times, smoothingWindow) {
+                if (!velocities || velocities.length === 0 || !times || times.length === 0 || velocities.length !== times.length) {
+                    // (UPDATED) Add strokeLength
+                    return { strokeCount: 0, peakVelocity: 0, averageVelocity: 0, totalTime: 0, strokeRate: 0, eWPS: 0, strokeLength: 0 };
+                }
+
+                const smoothedVelocities = simpleMovingAverage(velocities, smoothingWindow).filter(v => v !== null);
+
+                let strokeCount = 0;
+                if (smoothedVelocities.length > 0) {
+                    const smoothedSum = smoothedVelocities.reduce((acc, v) => acc + v, 0);
+                    const avgSmoothedVel = smoothedSum / smoothedVelocities.length;
+                    let wasBelowAverage = true;
+                    for (const currentVel of smoothedVelocities) {
+                        if (currentVel > avgSmoothedVel && wasBelowAverage) {
+                            strokeCount++;
+                            wasBelowAverage = false; 
+                        } else if (currentVel < avgSmoothedVel) {
+                            wasBelowAverage = true; 
+                        }
+                    }
+                }
+
+                let peakVelocity = 0;
+                let velocitySum = 0;
+                for (const v of velocities) {
+                    if (v > peakVelocity) peakVelocity = v;
+                    velocitySum += v;
+                }
+                
+                const totalTime = times.reduce((acc, t) => acc + t, 0);
+                const averageVelocity = (velocities.length > 0) ? (velocitySum / velocities.length) : 0;
+                
+                let strokeRate = 0;
+                let eWPS = 0;
+                if (totalTime > 0 && strokeCount > 0) {
+                    strokeRate = (strokeCount / totalTime) * 60;
+                    const strokesPerSecond = strokeCount / totalTime;
+                    eWPS = (averageVelocity ** 3) / strokesPerSecond;
+                }
+
+                // (NEW) Calculate distance and stroke length
+                const distance = velocities.length * 0.02; // 0.02m per data point
+                let strokeLength = 0;
+                if (strokeCount > 0) {
+                    strokeLength = distance / strokeCount;
+                }
+                
+                // (UPDATED) Add strokeLength
+                return { strokeCount, peakVelocity, averageVelocity, totalTime, strokeRate, eWPS, strokeLength };
+            }
+
+            function calculateAllMetrics(velocities, times, trialName) {
+                const distancePerPoint = 0.02;
+                const smoothingWindow = (trialName.toUpperCase() === "MAX") ? 10 : 20;
+
+                const totalMetrics = calculateSegmentMetrics(velocities, times, smoothingWindow);
+
+                const splitMetrics = [];
+                const splitEndMeters = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+                let startRow = 0;
+                let startMeter = 0;
+
+                for (const endMeter of splitEndMeters) {
+                    const endRow = Math.round(endMeter / distancePerPoint);
+                    const segmentVelocities = velocities.slice(startRow, endRow);
+                    const segmentTimes = times.slice(startRow, endRow);
+                    const segmentMetrics = calculateSegmentMetrics(segmentVelocities, segmentTimes, smoothingWindow);
+
+                    splitMetrics.push({
+                        label: `${startMeter}m - ${endMeter}m`,
+                        metrics: segmentMetrics
+                    });
+
+                    startRow = endRow;
+                    startMeter = endMeter;
+                    if (startRow >= velocities.length) break;
+                }
+                
+                const smoothedVelocities = simpleMovingAverage(velocities, smoothingWindow);
+                
+                return {
+                    metrics: totalMetrics,
+                    splitMetrics: splitMetrics,
+                    smoothedVelocities: smoothedVelocities, 
+                    smoothingWindow: smoothingWindow 
+                };
+            }
+            
+            function pivotSplitData(splitMetrics) {
+                const labels = splitMetrics.map(s => s.label);
+                const metricData = {
+                    totalTime: { label: "Split Time", unit: "s", data: [] },
+                    averageVelocity: { label: "Average Velocity", unit: "m/s", data: [] },
+                    peakVelocity: { label: "Peak Velocity", unit: "m/s", data: [] },
+                    strokeCount: { label: "Strokes", unit: "strokes", data: [] },
+                    strokeRate: { label: "Stroke Rate", unit: "spm", data: [] },
+                    // (NEW) Add strokeLength
+                    strokeLength: { label: "Stroke Length", unit: "m", data: [] },
+                    eWPS: { label: "eWPS", unit: "", data: [] }
+                };
+
+                for (const split of splitMetrics) {
+                    metricData.totalTime.data.push(split.metrics.totalTime);
+                    metricData.averageVelocity.data.push(split.metrics.averageVelocity);
+                    metricData.peakVelocity.data.push(split.metrics.peakVelocity);
+                    metricData.strokeCount.data.push(split.metrics.strokeCount);
+                    metricData.strokeRate.data.push(split.metrics.strokeRate);
+                    // (NEW) Add strokeLength
+                    metricData.strokeLength.data.push(split.metrics.strokeLength);
+                    metricData.eWPS.data.push(split.metrics.eWPS);
+                }
+
+                return { labels: labels, metrics: metricData };
+            }
+
+            // --- Display Functions ---
+
+            function showMessage(type, text) {
+                messageArea.innerHTML = text;
+                messageArea.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+                
+                if (type === 'error') {
+                    messageArea.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'success') {
+                    messageArea.classList.add('bg-green-100', 'text-green-700');
+                } else {
+                    messageArea.classList.add('bg-blue-100', 'text-blue-700');
+                }
+            }
+
+            function displayFileInfo(info) {
+                fileInfo.innerHTML = `
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-xs uppercase">Athlete</span>
+                        <span class="text-lg font-bold">${info.firstName} ${info.lastName}</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-xs uppercase">Trial</span>
+                        <span class="text-lg font-bold">${info.trial}</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-xs uppercase">Date & Time</span>
+                        <span class="text-lg font-bold">${info.date} @ ${info.time}</span>
+                    </div>
+                `;
+                fileInfoContainer.classList.remove('hidden');
+            }
+
+            function displayMetrics(metrics, smoothingWindow) {
+                metricsInfo.innerHTML = `
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">Total Time</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.totalTime.toFixed(2)} s</span>
+                        <span class="text-xs text-gray-400 block">(100m Effort)</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">Total Strokes</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.strokeCount}</span>
+                        <span class="text-xs text-gray-400 block">(${smoothingWindow}-pt Avg Cross)</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">Stroke Rate</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.strokeRate.toFixed(1)} spm</span>
+                        <span class="text-xs text-gray-400 block">(Avg. Strokes per min)</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">Average Velocity</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.averageVelocity.toFixed(2)} m/s</span>
+                        <span class="text-xs text-gray-400 block">(Raw Data Avg)</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">Peak Velocity</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.peakVelocity.toFixed(2)} m/s</span>
+                        <span class="text-xs text-gray-400 block">(Raw Data Peak)</span>
+                    </div>
+                    <!-- (NEW) Add strokeLength -->
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">Stroke Length</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.strokeLength.toFixed(2)} m</span>
+                        <span class="text-xs text-gray-400 block">(Dist / Stroke)</span>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow">
+                        <span class="font-semibold text-gray-500 block text-sm uppercase">eWPS</span>
+                        <span class="text-3xl font-bold text-blue-600">${metrics.eWPS.toFixed(2)}</span>
+                        <span class="text-xs text-gray-400 block">(AvgVel³ / (SR/60))</span>
+                    </div>
+                `;
+                metricsContainer.classList.remove('hidden');
+            }
+
+            function displaySplitMetrics(splitMetrics) {
+                const accordion = document.getElementById('split-accordion');
+                let allSplitHtml = ''; // (NEW) Accumulate HTML
+
+                splitChartInstances.forEach(chart => chart.destroy());
+                splitChartInstances.clear();
+
+                const pivotedData = pivotSplitData(splitMetrics);
+                
+                let isOpen = true; 
+
+                for (const [metricKey, metricInfo] of Object.entries(pivotedData.metrics)) {
+                    const contentId = `split-metric-${metricKey}`;
+                    const canvasId = `chart-metric-${metricKey}`;
+                    
+                    let dataListHtml = pivotedData.labels.map((label, index) => {
+                        let formattedValue;
+                        const value = metricInfo.data[index];
+                        
+                        if (value === null || isNaN(value)) formattedValue = 'N/A';
+                        else if (metricKey === 'strokeCount') formattedValue = value;
+                        else if (metricKey === 'strokeRate') formattedValue = value.toFixed(1);
+                        // (NEW) Add strokeLength
+                        else if (metricKey === 'strokeLength') formattedValue = value.toFixed(2);
+                        else if (metricKey === 'eWPS') formattedValue = value.toFixed(2);
+                         else formattedValue = value.toFixed(2);
+                        
+                        const unit = metricInfo.unit || '';
+
+                        return `
+                            <div class="flex-shrink-0 w-32 mr-2 p-3 bg-white rounded-lg shadow-inner text-center">
+                                <span class="font-semibold text-gray-500 block text-xs uppercase">${label}</span>
+                                <span class="text-lg font-bold text-blue-600">${formattedValue} ${unit}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const chartData = {
+                        labels: pivotedData.labels,
+                        data: metricInfo.data,
+                        unit: metricInfo.unit
+                    };
+
+                    allSplitHtml += `
+                        <div class="bg-white rounded-lg shadow-md">
+                            <button 
+                                data-accordion-toggle="true" 
+                                data-accordion-target="${contentId}"
+                                data-chart-data='${JSON.stringify(chartData)}'
+                                class="w-full flex justify-between items-center p-4 font-semibold text-gray-700 hover:bg-gray-50 transition"
+                            >
+                                <span>${metricInfo.label}</span>
+                                <svg class="w-5 h-5 transition-transform transform ${isOpen ? '' : 'rotate-180'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            
+                            <div id="${contentId}" class="p-4 bg-gray-50 border-t border-gray-200 ${isOpen ? '' : 'hidden'}">
+                                <div class="split-data-list mb-4">
+                                    ${dataListHtml}
+                                </div>
+                                <div class="w-full h-64">
+                                    <canvas id="${canvasId}"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    isOpen = false; // Only first one is open
+                }
+
+                // (NEW) Set HTML all at once
+                accordion.innerHTML = allSplitHtml;
+
+                // (NEW) Now that HTML is in the DOM, draw the first chart
+                const firstCanvasId = accordion.querySelector('canvas')?.id;
+                const firstButton = accordion.querySelector('button[data-chart-data]');
+                if (firstCanvasId && firstButton) {
+                    try {
+                        const chartData = JSON.parse(firstButton.dataset.chartData);
+                        drawSplitChart(firstCanvasId, chartData.labels, chartData.data, chartData.unit);
+                    } catch (e) {
+                        console.error("Failed to parse or draw first split chart:", e);
+                    }
+                }
+            }
+
+        });
+    </script>
+</body>
+</html>
+
